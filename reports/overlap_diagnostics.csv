@@ -1,0 +1,13 @@
+partition,action,configured_propensity,observed_assignment_share,assigned_customers,max_inverse_probability_weight,effective_sample_size,minimum_propensity_rule,support_pass,customers_trimmed
+train,control,0.4,0.403605987925,4880,2.5,4880,0.05,True,0
+train,reminder,0.25,0.24894549665,3010,4,3010,0.05,True,0
+train,voucher,0.2,0.199652634191,2414,5,2414,0.05,True,0
+train,service_call,0.15,0.147795881234,1787,6.66666666667,1787,0.05,True,0
+validation,control,0.4,0.407619689818,1209,2.5,1209,0.05,True,0
+validation,reminder,0.25,0.24173971679,717,4,717,0.05,True,0
+validation,voucher,0.2,0.198921105866,590,5,590,0.05,True,0
+validation,service_call,0.15,0.151719487525,450,6.66666666667,450,0.05,True,0
+test,control,0.4,0.40876656473,1203,2.5,1203,0.05,True,0
+test,reminder,0.25,0.246687054027,726,4,726,0.05,True,0
+test,voucher,0.2,0.195378865104,575,5,575,0.05,True,0
+test,service_call,0.15,0.14916751614,439,6.66666666667,439,0.05,True,0

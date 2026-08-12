@@ -14,6 +14,7 @@ def solve_policy(
     gains: pd.DataFrame,
     config: ProjectConfig,
     budget: float | None = None,
+    capacity_multiplier: float = 1.0,
 ) -> pd.Series:
     """Choose at most one positive-value action per customer under shared constraints."""
     missing = set(ACTIVE_ACTIONS) - set(gains.columns)
@@ -22,6 +23,8 @@ def solve_policy(
     n = len(gains)
     m = len(ACTIVE_ACTIONS)
     budget = config.budget_per_customer * n if budget is None else budget
+    if capacity_multiplier <= 0:
+        raise ValueError("capacity_multiplier must be positive")
     values = gains.loc[:, ACTIVE_ACTIONS].to_numpy(float).reshape(-1)
     costs = np.tile([config.action_costs[action] for action in ACTIVE_ACTIONS], n)
 
@@ -49,7 +52,10 @@ def solve_policy(
         [
             np.ones(n),
             [budget],
-            [np.floor(config.capacity_shares[action] * n) for action in ACTIVE_ACTIONS],
+            [
+                np.floor(min(1.0, config.capacity_shares[action] * capacity_multiplier) * n)
+                for action in ACTIVE_ACTIONS
+            ],
         ]
     )
     constraints = LinearConstraint(
@@ -72,6 +78,54 @@ def solve_policy(
     chosen_rows, chosen_actions = np.where(selected > 0.5)
     policy[chosen_rows] = np.asarray(ACTIVE_ACTIONS, dtype=object)[chosen_actions]
     return pd.Series(policy, index=gains.index, name="recommended_action")
+
+
+def greedy_uplift_policy(
+    gains: pd.DataFrame,
+    config: ProjectConfig,
+    budget: float | None = None,
+    capacity_multiplier: float = 1.0,
+) -> pd.Series:
+    """Rank each customer's best predicted action, then allocate greedily.
+
+    This is an intentionally simple baseline. It uses the same budget and channel ceilings as
+    the optimizer but does not trade off competing customer-action combinations globally.
+    """
+    missing = set(ACTIVE_ACTIONS) - set(gains.columns)
+    if missing:
+        raise ValueError(f"missing treatment gain columns: {sorted(missing)}")
+    if capacity_multiplier <= 0:
+        raise ValueError("capacity_multiplier must be positive")
+
+    n = len(gains)
+    budget = config.budget_per_customer * n if budget is None else budget
+    gain_values = gains.loc[:, ACTIVE_ACTIONS].to_numpy(float)
+    best_positions = np.argmax(gain_values, axis=1)
+    best_actions = np.asarray(ACTIVE_ACTIONS, dtype=object)[best_positions]
+    best_gains = gain_values[np.arange(n), best_positions]
+    order = np.argsort(-best_gains, kind="stable")
+    capacities = {
+        action: int(
+            np.floor(min(1.0, config.capacity_shares[action] * capacity_multiplier) * n)
+        )
+        for action in ACTIVE_ACTIONS
+    }
+    used = {action: 0 for action in ACTIVE_ACTIONS}
+    spent = 0.0
+    policy = pd.Series("control", index=gains.index, name="recommended_action")
+    for position in order:
+        index = gains.index[position]
+        action = str(best_actions[position])
+        gain = float(best_gains[position])
+        cost = config.action_costs[action]
+        if gain <= 0:
+            break
+        if used[action] >= capacities[action] or spent + cost > budget + 1e-9:
+            continue
+        policy.at[index] = action
+        used[action] += 1
+        spent += cost
+    return policy
 
 
 def segment_ate_gains(train: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
@@ -125,12 +179,21 @@ def policy_cost(policy: pd.Series, config: ProjectConfig) -> float:
     return float(policy.map(config.action_costs).sum())
 
 
-def validate_policy(policy: pd.Series, config: ProjectConfig, budget: float | None = None) -> None:
+def validate_policy(
+    policy: pd.Series,
+    config: ProjectConfig,
+    budget: float | None = None,
+    capacity_multiplier: float = 1.0,
+) -> None:
     n = len(policy)
     budget = config.budget_per_customer * n if budget is None else budget
+    if capacity_multiplier <= 0:
+        raise ValueError("capacity_multiplier must be positive")
     if policy_cost(policy, config) > budget + 1e-6:
         raise ValueError("policy exceeds the treatment budget")
     for action in ACTIVE_ACTIONS:
-        maximum = int(np.floor(config.capacity_shares[action] * n))
+        maximum = int(
+            np.floor(min(1.0, config.capacity_shares[action] * capacity_multiplier) * n)
+        )
         if int(policy.eq(action).sum()) > maximum:
             raise ValueError(f"policy exceeds {action} capacity")

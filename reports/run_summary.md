@@ -10,6 +10,9 @@ validation period. The selected estimator was **T-learner linear**.
 - Train customers: 12,091
 - Validation customers: 2,966
 - Test customers: 2,943
+- Minimum configured treatment propensity: 0.15
+- Maximum inverse-probability weight: 6.67
+- Positivity support failures: 0
 
 ## Test policy result
 
@@ -23,6 +26,14 @@ Compared with risk-only targeting, the selected policy improved true incremental
 **13.9%**.
 
 These values validate the workflow on synthetic data. They are not production performance claims.
+
+## Operating sensitivity
+
+The same policies were evaluated across **9** combinations
+of budget and channel capacity, producing
+**27** matched-constraint policy evaluations. Every
+reported allocation passed its budget and per-channel ceilings. The grid is a decision stress
+test, not a claim that historical estimates automatically transport to a new operating regime.
 
 ## Validation model comparison
 

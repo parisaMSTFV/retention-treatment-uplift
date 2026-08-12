@@ -15,6 +15,10 @@ rule based only on this retrospective exercise.
   and 24 service calls without exceeding the shared budget.
 - The estimate and simulation truth are directionally consistent, while the confidence interval
   makes remaining uncertainty visible.
+- All randomized arms pass the pre-declared 5% propensity support rule; no observations are
+  trimmed in this synthetic experiment.
+- Budget and channel-capacity stress tests compare the optimizer with risk-only and greedy
+  uplift-ranked policies under the same constraints.
 
 ## Guardrails before production
 

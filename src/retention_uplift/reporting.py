@@ -131,6 +131,59 @@ def plot_allocations(policy_comparison: pd.DataFrame, path: Path) -> None:
     _save_figure(figure, path)
 
 
+def plot_policy_sensitivity(sensitivity: pd.DataFrame, path: Path) -> None:
+    """Show value stability under budget and channel-capacity changes."""
+    figure, axes = plt.subplots(1, 2, figsize=(12.5, 4.8))
+
+    budget_curve = sensitivity.loc[
+        sensitivity["capacity_multiplier"].eq(1.0)
+        & sensitivity["policy"].eq("Causal optimizer")
+    ].sort_values("budget_multiplier")
+    axes[0].plot(
+        budget_curve["budget_multiplier"],
+        budget_curve["true_incremental_value"],
+        marker="o",
+        color="#0F766E",
+        label="Simulation truth",
+    )
+    axes[0].plot(
+        budget_curve["budget_multiplier"],
+        budget_curve["dr_incremental_value"],
+        marker="o",
+        color="#2563EB",
+        label="DR estimate",
+    )
+    axes[0].fill_between(
+        budget_curve["budget_multiplier"],
+        budget_curve["ci_low"],
+        budget_curve["ci_high"],
+        color="#2563EB",
+        alpha=0.12,
+        label="95% interval",
+    )
+    axes[0].set_title("Causal policy across budget levels")
+    axes[0].set_xlabel("Budget multiplier")
+    axes[0].set_ylabel("Incremental net value")
+    axes[0].legend(frameon=False)
+    axes[0].grid(alpha=0.2)
+
+    capacity_curve = sensitivity.loc[sensitivity["budget_multiplier"].eq(1.0)]
+    for policy_name, group in capacity_curve.groupby("policy"):
+        group = group.sort_values("capacity_multiplier")
+        axes[1].plot(
+            group["capacity_multiplier"],
+            group["true_incremental_value"],
+            marker="o",
+            label=policy_name,
+        )
+    axes[1].set_title("Matched-budget policy comparison")
+    axes[1].set_xlabel("Channel-capacity multiplier")
+    axes[1].set_ylabel("True value (simulation only)")
+    axes[1].legend(frameon=False)
+    axes[1].grid(alpha=0.2)
+    _save_figure(figure, path)
+
+
 def write_narrative_reports(
     reports_dir: Path,
     metrics: dict[str, object],
@@ -153,6 +206,8 @@ def write_narrative_reports(
         / max(abs(oracle["true_incremental_value"]), 1.0)
         * 100
     )
+    minimum_propensity = float(metrics["minimum_configured_propensity"])
+    maximum_weight = float(metrics["maximum_inverse_probability_weight"])
     model_table = _markdown_table(model_comparison)
     summary = f"""# Reproducible Run Summary
 
@@ -166,6 +221,9 @@ validation period. The selected estimator was **{selected_model}**.
 - Train customers: {int(metrics['train_customers']):,}
 - Validation customers: {int(metrics['validation_customers']):,}
 - Test customers: {int(metrics['test_customers']):,}
+- Minimum configured treatment propensity: {minimum_propensity:.2f}
+- Maximum inverse-probability weight: {maximum_weight:.2f}
+- Positivity support failures: {int(metrics['overlap_support_failures'])}
 
 ## Test policy result
 
@@ -179,6 +237,14 @@ Compared with risk-only targeting, the selected policy improved true incremental
 **{oracle_regret:.1f}%**.
 
 These values validate the workflow on synthetic data. They are not production performance claims.
+
+## Operating sensitivity
+
+The same policies were evaluated across **{int(metrics['sensitivity_scenarios'])}** combinations
+of budget and channel capacity, producing
+**{int(metrics['sensitivity_policy_evaluations'])}** matched-constraint policy evaluations. Every
+reported allocation passed its budget and per-channel ceilings. The grid is a decision stress
+test, not a claim that historical estimates automatically transport to a new operating regime.
 
 ## Validation model comparison
 
@@ -201,6 +267,10 @@ rule based only on this retrospective exercise.
   and {int(selected['n_service_call']):,} service calls without exceeding the shared budget.
 - The estimate and simulation truth are directionally consistent, while the confidence interval
   makes remaining uncertainty visible.
+- All randomized arms pass the pre-declared 5% propensity support rule; no observations are
+  trimmed in this synthetic experiment.
+- Budget and channel-capacity stress tests compare the optimizer with risk-only and greedy
+  uplift-ranked policies under the same constraints.
 
 ## Guardrails before production
 
@@ -229,17 +299,26 @@ def write_reports(
     rank_metrics: pd.DataFrame,
     rank_curves: pd.DataFrame,
     calibration: pd.DataFrame,
+    overlap: pd.DataFrame,
+    sensitivity: pd.DataFrame,
 ) -> None:
     reports_dir = root / "reports"
     figures_dir = reports_dir / "figures"
     figures_dir.mkdir(parents=True, exist_ok=True)
-    model_comparison.to_csv(reports_dir / "model_comparison.csv", index=False)
-    policy_comparison.to_csv(reports_dir / "policy_comparison.csv", index=False)
-    effect_metrics.to_csv(reports_dir / "treatment_effect_metrics.csv", index=False)
-    rank_metrics.to_csv(reports_dir / "uplift_rank_metrics.csv", index=False)
-    calibration.to_csv(reports_dir / "uplift_calibration.csv", index=False)
+    csv_outputs = {
+        "model_comparison.csv": model_comparison,
+        "policy_comparison.csv": policy_comparison,
+        "treatment_effect_metrics.csv": effect_metrics,
+        "uplift_rank_metrics.csv": rank_metrics,
+        "uplift_calibration.csv": calibration,
+        "overlap_diagnostics.csv": overlap,
+        "policy_sensitivity.csv": sensitivity,
+    }
+    for filename, frame in csv_outputs.items():
+        frame.to_csv(reports_dir / filename, index=False, float_format="%.12g")
     plot_policy_value(policy_comparison, figures_dir / "policy_value_comparison.png")
     plot_calibration(calibration, figures_dir / "uplift_calibration.png")
     plot_qini(rank_curves, figures_dir / "qini_curves.png")
     plot_allocations(policy_comparison, figures_dir / "treatment_allocation.png")
+    plot_policy_sensitivity(sensitivity, figures_dir / "policy_sensitivity.png")
     write_narrative_reports(reports_dir, metrics, model_comparison, policy_comparison)

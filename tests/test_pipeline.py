@@ -27,6 +27,11 @@ class PipelineTests(unittest.TestCase):
                 "DR-learner hist",
             })
             self.assertTrue((root / "reports" / "policy_comparison.csv").exists())
+            self.assertTrue((root / "reports" / "overlap_diagnostics.csv").exists())
+            self.assertTrue((root / "reports" / "policy_sensitivity.csv").exists())
+            self.assertTrue(
+                (root / "reports" / "figures" / "policy_sensitivity.png").exists()
+            )
             self.assertTrue((root / "reports" / "figures" / "qini_curves.png").exists())
             self.assertTrue((root / "data" / "sample" / "synthetic_policy_sample.csv").exists())
 
