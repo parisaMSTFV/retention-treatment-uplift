@@ -50,6 +50,8 @@ four-wave test period that is not used for model selection.
 | Improvement over risk-only targeting | **76.2%** |
 | Regret versus simulation oracle | **13.9%** |
 | Treatment budget used | 1,027.5 of 1,030.05 |
+| Minimum randomized-arm propensity | **0.15** |
+| Budget/capacity scenarios passing constraints | **9 of 9** |
 
 The true value and oracle are visible only because the data generator retains hidden expected
 potential outcomes. They are never used to select the model or build the deployable policy.
@@ -96,6 +98,31 @@ response as precisely.
 
 ![Treatment allocation](reports/figures/treatment_allocation.png)
 
+## Overlap and operating sensitivity
+
+Because assignment is randomized with known probabilities, the overlap audit uses the experiment
+design rather than fitting an unnecessary observational propensity model. Every customer is
+eligible for all four arms. Across train, validation, and test, the smallest configured propensity
+is 0.15, the largest inverse-probability weight is 6.67, and every arm passes the pre-declared 5%
+support rule. No synthetic observations are trimmed.
+
+The policy is then re-optimized on a 3-by-3 grid of budget and channel-capacity multipliers. Each
+point compares the causal optimizer, risk-only targeting, and a greedy uplift-ranked heuristic
+under identical constraints—27 policy evaluations in total, all passing their ceilings.
+
+| Test operating point | Causal optimizer true value | Decision interpretation |
+|---|---:|---|
+| 0.6x budget, 1.0x capacity | 2,796 | Retains 97.4% of base value with 60% of the budget ceiling |
+| 1.0x budget, 1.0x capacity | 2,870 | Base operating policy |
+| 1.0x budget, 0.7x capacity | 2,304 | Channel scarcity removes 19.7% of base value |
+| 1.0x budget, 1.3x capacity | 3,367 | Extra channel capacity adds 17.3% over base |
+
+The grid indicates that channel capacity is more binding than budget in this synthetic run. DR
+intervals remain wide, so these comparisons motivate a prospective operating test; they do not
+justify automatic deployment or claim monotonic realized value.
+
+![Policy sensitivity](reports/figures/policy_sensitivity.png)
+
 ## Evaluation design
 
 ```mermaid
@@ -107,11 +134,14 @@ flowchart TD
 ```
 
 - Experiment health checks include arm counts and standardized mean differences.
+- Design-based overlap diagnostics report arm propensities, IPW exposure, support rules, and
+  trimming decisions.
 - Policy value is estimated with a doubly robust off-policy estimator.
 - Treatment ranking uses IPW cumulative gain, AUUC, and Qini.
 - Uplift calibration compares predicted and observed IPW gain by decile.
 - Synthetic-only diagnostics report effect RMSE, rank correlation, and regret versus the oracle.
 - A leakage test changes outcomes and hidden future truth and confirms model features do not move.
+- Policy sensitivity compares three policies on matched budget and capacity constraints.
 
 ![Uplift calibration](reports/figures/uplift_calibration.png)
 
@@ -159,6 +189,8 @@ On Windows PowerShell:
 - [Reproducible run summary](reports/run_summary.md)
 - [Decision note](reports/decision_note.md)
 - [Policy comparison](reports/policy_comparison.csv)
+- [Overlap diagnostics](reports/overlap_diagnostics.csv)
+- [Policy sensitivity grid](reports/policy_sensitivity.csv)
 - [Synthetic policy sample](reports/policy_assignments_sample.csv)
 
 ## Limitations

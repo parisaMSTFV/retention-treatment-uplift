@@ -30,6 +30,11 @@ The final policy is evaluated on later untouched experiment waves. Doubly robust
 the primary method. Hidden simulation truth supports effect-error and oracle-regret diagnostics
 but is excluded from selection and optimization.
 
+Known randomization probabilities provide design-based overlap evidence. The committed audit uses
+a 5% minimum-propensity rule; all arms pass and no observations are trimmed. Policy robustness is
+checked across nine budget-by-capacity scenarios against risk-only and greedy uplift-ranked
+baselines under matched constraints. Doubly robust intervals are reported at each operating point.
+
 ## Known limitations
 
 - Synthetic covariates and treatment mechanisms simplify real retention behavior.
@@ -37,6 +42,8 @@ but is excluded from selection and optimization.
 - Fixed treatment costs omit redemption variability and operational queues.
 - The outcome horizon is 60 days and may miss longer-term customer or brand effects.
 - Small treatment arms produce noisy calibration and off-policy estimates.
+- The operating grid re-optimizes on fixed model predictions; it does not prove transportability
+  when customer behavior, treatment cost, or channel response changes.
 - No fairness or protected-group analysis is included because the generator does not create
   protected attributes.
 

@@ -32,6 +32,41 @@ def experiment_health(frame: pd.DataFrame, config: ProjectConfig) -> dict[str, f
     }
 
 
+def overlap_diagnostics(
+    frame: pd.DataFrame,
+    config: ProjectConfig,
+    partition: str,
+    minimum_propensity: float = 0.05,
+) -> pd.DataFrame:
+    """Audit positivity using the known randomization probabilities.
+
+    This project is a randomized experiment, so fitting an observational propensity model would
+    add noise rather than evidence. Every customer is eligible for every arm and has the same
+    configured probability vector. The table therefore makes the design-based support rule and
+    inverse-probability-weight exposure explicit.
+    """
+    rows = []
+    for action in ACTIONS:
+        probability = float(config.action_probabilities[action])
+        assigned = int(frame["assigned_action"].eq(action).sum())
+        support_pass = probability >= minimum_propensity
+        rows.append(
+            {
+                "partition": partition,
+                "action": action,
+                "configured_propensity": probability,
+                "observed_assignment_share": assigned / len(frame),
+                "assigned_customers": assigned,
+                "max_inverse_probability_weight": 1.0 / probability,
+                "effective_sample_size": assigned,
+                "minimum_propensity_rule": minimum_propensity,
+                "support_pass": support_pass,
+                "customers_trimmed": 0 if support_pass else len(frame),
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def effect_accuracy(frame: pd.DataFrame, gains: pd.DataFrame, model_name: str) -> pd.DataFrame:
     rows = []
     for action in ACTIVE_ACTIONS:

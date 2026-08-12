@@ -39,6 +39,19 @@ The simulation-only effect RMSE is reported but cannot determine the selected mo
 
 Every active policy is solved under the same budget and channel capacities.
 
+For operating sensitivity, the selected model is also compared with risk-only targeting and a
+greedy uplift-ranked heuristic on a pre-declared 3-by-3 grid: budget multipliers of 0.6, 1.0, and
+1.4 crossed with channel-capacity multipliers of 0.7, 1.0, and 1.3. Policies are re-solved at each
+point and must pass the same constraint validator.
+
+## Positivity and overlap rule
+
+Assignment probabilities are fixed by the randomized design, so the analysis does not estimate a
+propensity model. Each arm must have a configured probability of at least 0.05 in every temporal
+partition. The audit reports observed assignment share, arm size, maximum inverse-probability
+weight, and the resulting trimming count. A failing arm would exclude the affected comparison;
+the committed run has no failures and trims no observations.
+
 ## Primary test metric
 
 Incremental 60-day net value of the selected policy versus assigning control to everyone,
@@ -52,6 +65,8 @@ estimated with a doubly robust off-policy estimator and a normal-approximation 9
 - uplift calibration by predicted-gain decile;
 - budget use, treatment counts, and constraint violations;
 - experiment arm counts and maximum absolute standardized mean difference.
+- known-propensity overlap diagnostics and any trimming decision;
+- DR and simulation-only policy value over the budget-by-capacity grid.
 
 ## Decision rule
 

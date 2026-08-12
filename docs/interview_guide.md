@@ -41,6 +41,22 @@ The estimate uses only observed randomized outcomes and therefore has sampling n
 for smaller treatment arms. The simulator can calculate every customer's expected potential
 outcome, which is unavailable in real data. The confidence interval communicates that uncertainty.
 
+## How did you check overlap?
+
+This is a randomized experiment with known assignment probabilities, not an observational study.
+I therefore audited the configured probabilities directly instead of adding a fitted propensity
+model. The smallest arm probability is 0.15, so the maximum IPW is 6.67; every temporal partition
+passes the pre-declared 0.05 support rule and no rows are trimmed. With real logs I would also
+verify eligibility, exposure, non-compliance, and support within critical operating segments.
+
+## What did the budget and capacity grid change?
+
+I re-solved the causal, risk-only, and greedy uplift policies on nine matched-constraint operating
+points. At 60% of the base budget and full capacity, the causal policy retained 97.4% of its base
+simulation value. Reducing channel capacity to 70% at the base budget removed 19.7%, while raising
+capacity to 130% added 17.3%. That suggests channel capacity is the binding lever in this synthetic
+case, but the wide DR intervals mean I would validate the operating change prospectively.
+
 ## What prevents leakage?
 
 Features are explicitly selected from pre-treatment columns. Train, validation, and test are

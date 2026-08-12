@@ -15,5 +15,9 @@
 | Treatment capacity | Assigned customers for an action divided by eligible customers | Enforce operational limits |
 | Regret versus oracle | Oracle true value minus selected policy true value, divided by oracle value | Measure remaining decision gap in simulation |
 | Maximum absolute SMD | Largest arm-versus-control standardized mean difference across numeric pre-treatment features | Randomization health check |
+| Configured propensity | Known randomization probability for an experiment arm | Verify design-based positivity and calculate IPW exposure |
+| Maximum inverse-probability weight | Reciprocal of an arm's configured propensity | Flag unstable off-policy corrections before evaluation |
+| Support pass | Configured propensity is at least the pre-declared 0.05 threshold | Decide whether an arm comparison is evaluable or must be excluded |
+| Sensitivity policy value | DR and simulation-only incremental value after re-solving under a budget/capacity grid point | Identify binding operating constraints and fragile decisions |
 
 All currency values are fictional synthetic units.
