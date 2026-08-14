@@ -4,13 +4,37 @@
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)](https://www.python.org/)
 [![Data](https://img.shields.io/badge/data-100%25%20synthetic-0F766E)](DATA_PROVENANCE.md)
 
-A reproducible causal machine-learning case study for deciding **who should receive a retention
-intervention and which intervention creates the highest incremental net value**. The project
-learns heterogeneous effects from a randomized experiment, compares three uplift estimators,
-and turns predicted gains into a budget- and capacity-constrained customer policy.
+A churn score estimates who may leave. This project asks the next decision question: **which
+customers should receive a retention action, which action should they receive, and will the
+incremental value justify its cost?** It learns heterogeneous effects from a randomized
+experiment and turns them into a budget- and capacity-constrained policy.
 
 > Every customer, feature, experiment wave, treatment, cost, constraint, and result is synthetic.
 > No employer data, schema, code, business rule, or internal threshold is used.
+
+## Decision card
+
+| Decision layer | Executed synthetic evidence |
+|---|---|
+| **Who** | 727 of 2,943 test customers receive an active treatment after value and operating constraints are applied; 2,216 receive no treatment. |
+| **Which action** | 647 reminders, 56 vouchers, and 24 service calls. |
+| **Net value** | Doubly robust estimate: **2,291** with a **95% CI of 405 to 4,177**; simulation truth: **2,870**, or **76.2% above risk-only targeting**. |
+
+The interval is positive but wide, so the estimate does not support automatic deployment. The
+candidate policy requires a prospective randomized test with the same cost and capacity rules.
+
+![Policy value comparison](reports/figures/policy_value_comparison.png)
+
+## Quick start
+
+```bash
+python -m pip install -e ".[dev]"
+retention-uplift --project-root .
+make check
+```
+
+The run regenerates the synthetic experiment, policy outputs, diagnostics, and figures. Row-level
+data and hidden potential outcomes remain excluded from Git.
 
 ## Business question
 
@@ -35,7 +59,7 @@ The four randomized arms are `Control`, `Reminder`, `Voucher`, and `Service call
 can receive at most one active treatment. The optimizer may also choose control when every
 predicted treatment gain is negative.
 
-## Validated result
+## Evaluation detail
 
 The committed run uses seed `42`, 18,000 synthetic customers, 24 experiment waves, and a final
 four-wave test period that is not used for model selection.
@@ -43,11 +67,6 @@ four-wave test period that is not used for model selection.
 | Untouched test measure | Result |
 |---|---:|
 | Selected estimator | T-learner linear |
-| Customers in test | 2,943 |
-| True incremental net value in simulation | **2,870** |
-| Doubly robust policy estimate | **2,291** |
-| 95% confidence interval | **405 to 4,177** |
-| Improvement over risk-only targeting | **76.2%** |
 | Regret versus simulation oracle | **13.9%** |
 | Treatment budget used | 1,027.5 of 1,030.05 |
 | Minimum randomized-arm propensity | **0.15** |
@@ -55,8 +74,6 @@ four-wave test period that is not used for model selection.
 
 The true value and oracle are visible only because the data generator retains hidden expected
 potential outcomes. They are never used to select the model or build the deployable policy.
-
-![Policy value comparison](reports/figures/policy_value_comparison.png)
 
 ## Why a simpler model won
 
@@ -161,16 +178,13 @@ scripts/                public-file sensitive-content check
 The row-level synthetic experiment and hidden potential outcomes are regenerated locally and
 excluded from Git. Only a 30-row synthetic policy sample and aggregate outputs are committed.
 
-## Reproduce the project
+## Environment setup
 
-Python 3.11 or later is required.
+The Quick Start assumes Python 3.11 or later. To isolate the dependencies first:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[dev]"
-make run
-make check
 ```
 
 On Windows PowerShell:
@@ -178,6 +192,9 @@ On Windows PowerShell:
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
+
+Then run the Quick Start commands above. On Windows without `make`, use `python -m ruff check .`,
+`python -m unittest discover -s tests -v`, and `python scripts/check_sensitive.py`.
 
 ## Documentation
 
