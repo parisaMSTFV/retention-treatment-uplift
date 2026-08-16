@@ -35,6 +35,15 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue((root / "reports" / "figures" / "qini_curves.png").exists())
             self.assertTrue((root / "data" / "sample" / "synthetic_policy_sample.csv").exists())
 
+            with tempfile.TemporaryDirectory() as second_directory:
+                second_root = Path(second_directory)
+                second_metrics = run_pipeline(second_root, config)
+                self.assertEqual(metrics, second_metrics)
+                self.assertEqual(
+                    (root / "reports" / "model_comparison.csv").read_bytes(),
+                    (second_root / "reports" / "model_comparison.csv").read_bytes(),
+                )
+
 
 if __name__ == "__main__":
     unittest.main()

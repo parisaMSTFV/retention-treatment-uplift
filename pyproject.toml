@@ -7,20 +7,20 @@ name = "retention-treatment-uplift"
 version = "0.1.0"
 description = "Causal uplift modeling and budget-constrained retention treatment policy"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Parisa Mostafavi" }]
 dependencies = [
-  "matplotlib>=3.8",
-  "numpy>=1.26",
-  "pandas>=2.1",
-  "scikit-learn>=1.4",
-  "scipy>=1.11",
+  "matplotlib==3.11.1",
+  "numpy==2.5.2",
+  "pandas==3.0.5",
+  "scikit-learn==1.9.0",
+  "scipy==1.18.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "ruff>=0.6",
+  "ruff==0.16.3",
 ]
 
 [project.scripts]
@@ -31,7 +31,7 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

@@ -18,8 +18,8 @@ validation period. The selected estimator was **T-learner linear**.
 
 The selected causal policy generated **2,870** synthetic
 currency units of true incremental net value. Its doubly robust estimate was
-**2,291**, with a 95% interval from
-**405** to **4,177**.
+**2,270**, with a 95% interval from
+**392** to **4,148**.
 
 Compared with risk-only targeting, the selected policy improved true incremental value by
 **76.2%**. Its regret versus the simulation-only oracle was
@@ -39,6 +39,6 @@ test, not a claim that historical estimates automatically transport to a new ope
 
 | model | validation_dr_value | validation_ci_low | validation_ci_high | mean_effect_rmse_simulation_only | selected |
 | --- | --- | --- | --- | --- | --- |
-| T-learner linear | 3888.662 | 2135.370 | 5641.953 | 1.673 | True |
-| DR-learner hist | 2569.410 | 406.313 | 4732.507 | 2.803 | False |
-| T-learner hist | 1862.299 | -213.681 | 3938.279 | 3.724 | False |
+| T-learner linear | 3911.476 | 2134.996 | 5687.956 | 1.673 | True |
+| DR-learner hist | 2997.256 | 853.836 | 5140.676 | 2.727 | False |
+| T-learner hist | 2828.555 | 716.878 | 4940.233 | 3.726 | False |

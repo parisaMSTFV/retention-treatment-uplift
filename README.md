@@ -1,7 +1,7 @@
 # Retention Treatment Uplift & Policy Optimization
 
 [![CI](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml/badge.svg)](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB)](https://www.python.org/)
 [![Evidence](https://img.shields.io/badge/evidence-synthetic%20%2B%20public%20randomized%20benchmark-0F766E)](DATA_PROVENANCE.md)
 
 A churn score estimates who may leave. This project asks the next decision question: **which
@@ -40,7 +40,7 @@ See the [external run summary](reports/external_validation/run_summary.md),
 |---|---|
 | **Who** | 727 of 2,943 test customers receive an active treatment after value and operating constraints are applied; 2,216 receive no treatment. |
 | **Which action** | 647 reminders, 56 vouchers, and 24 service calls. |
-| **Net value** | Doubly robust estimate: **2,291** with a **95% CI of 405 to 4,177**; simulation truth: **2,870**, or **76.2% above risk-only targeting**. |
+| **Net value** | Doubly robust estimate: **2,270** with a **95% CI of 392 to 4,148**; simulation truth: **2,870**, or **76.2% above risk-only targeting**. |
 
 The interval is positive but wide, so the estimate does not support automatic deployment. The
 candidate policy requires a prospective randomized test with the same cost and capacity rules.
@@ -51,12 +51,13 @@ candidate policy requires a prospective randomized test with the same cost and c
 
 ```bash
 python -m pip install -e ".[dev]"
-retention-uplift --project-root .
+retention-uplift --project-root local-runs/latest
 make check
 ```
 
-The run regenerates the synthetic experiment, policy outputs, diagnostics, and figures. Row-level
-data and hidden potential outcomes remain excluded from Git.
+The run regenerates the synthetic experiment, policy outputs, diagnostics, and figures under
+the ignored `local-runs/latest` directory. Row-level data and hidden potential outcomes remain
+excluded from Git.
 
 ### Reproduce the external validation
 
@@ -71,7 +72,7 @@ retention-uplift \
   --external-sample-size 300000 \
   --external-target-share 0.30 \
   --seed 42 \
-  --project-root .
+  --project-root local-runs/criteo
 ```
 
 The command verifies the exact official checksum and row count, validates the complete source,
@@ -130,9 +131,9 @@ it did not improve the decision metric.
 
 | Validation model | DR policy value | 95% interval | Selected |
 |---|---:|---:|:---:|
-| T-learner linear | 3,889 | 2,135 to 5,642 | Yes |
-| DR-learner hist | 2,569 | 406 to 4,733 | No |
-| T-learner hist | 1,862 | -214 to 3,938 | No |
+| T-learner linear | 3,911 | 2,135 to 5,688 | Yes |
+| DR-learner hist | 2,997 | 854 to 5,141 | No |
+| T-learner hist | 2,829 | 717 to 4,940 | No |
 
 ## From uplift scores to an operating policy
 
@@ -213,7 +214,7 @@ tests/                  randomization, leakage, contract, checksum, policy, and 
 docs/                   external-data contract, analysis plan, metrics, model card, interview guide
 reports/                synthetic decision run plus aggregate external-validation evidence
 scripts/                verified external downloader and public-file sensitive-content check
-.github/workflows/      CI on Python 3.11 and 3.12
+.github/workflows/      CI on Python 3.12
 ```
 
 The row-level synthetic experiment and hidden potential outcomes are regenerated locally and
@@ -221,7 +222,7 @@ excluded from Git. Only a 30-row synthetic policy sample and aggregate outputs a
 
 ## Environment setup
 
-The Quick Start assumes Python 3.11 or later. To isolate the dependencies first:
+The Quick Start requires Python 3.12. To isolate the dependencies first:
 
 ```bash
 python -m venv .venv
