@@ -1,7 +1,7 @@
 # Retention Treatment Uplift & Policy Optimization
 
 [![CI](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml/badge.svg)](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB)](https://www.python.org/)
 [![Evidence](https://img.shields.io/badge/evidence-synthetic%20%2B%20public%20randomized%20benchmark-0F766E)](DATA_PROVENANCE.md)
 
 A churn score estimates who may leave. This project asks the next decision question: **which
@@ -214,7 +214,7 @@ tests/                  randomization, leakage, contract, checksum, policy, and 
 docs/                   external-data contract, analysis plan, metrics, model card, interview guide
 reports/                synthetic decision run plus aggregate external-validation evidence
 scripts/                verified external downloader and public-file sensitive-content check
-.github/workflows/      CI on Python 3.11 and 3.12
+.github/workflows/      CI on Python 3.12
 ```
 
 The row-level synthetic experiment and hidden potential outcomes are regenerated locally and
@@ -222,7 +222,7 @@ excluded from Git. Only a 30-row synthetic policy sample and aggregate outputs a
 
 ## Environment setup
 
-The Quick Start assumes Python 3.11 or later. To isolate the dependencies first:
+The Quick Start requires Python 3.12. To isolate the dependencies first:
 
 ```bash
 python -m venv .venv

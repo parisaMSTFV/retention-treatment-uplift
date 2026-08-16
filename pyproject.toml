@@ -7,7 +7,7 @@ name = "retention-treatment-uplift"
 version = "0.1.0"
 description = "Causal uplift modeling and budget-constrained retention treatment policy"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Parisa Mostafavi" }]
 dependencies = [
@@ -31,7 +31,7 @@ where = ["src"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
