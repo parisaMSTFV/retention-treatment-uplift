@@ -7,7 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEXT_SUFFIXES = {".csv", ".json", ".md", ".py", ".toml", ".txt", ".yml", ".yaml"}
-EXCLUDED_PARTS = {".git", ".venv", "__pycache__", "generated"}
+EXCLUDED_PARTS = {".git", ".venv", "__pycache__", "generated", "local-runs"}
 EXCLUDED_FILES = {Path(__file__).resolve()}
 
 SENSITIVE_PATTERNS = {

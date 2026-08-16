@@ -15,7 +15,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Run the synthetic retention pipeline or external Criteo validation."
     )
-    parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    parser.add_argument(
+        "--project-root",
+        type=Path,
+        default=Path("local-runs/latest"),
+        help="Output root; defaults to an ignored local-run directory.",
+    )
     parser.add_argument("--customers", type=int, default=None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument(
