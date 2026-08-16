@@ -1,0 +1,18 @@
+{
+  "dataset": "CRITEO-UPLIFTv2.1",
+  "official_page": "https://ailab.criteo.com/criteo-uplift-prediction-dataset/",
+  "official_repository": "https://huggingface.co/datasets/criteo/criteo-uplift",
+  "download_url_pinned_revision": "https://huggingface.co/datasets/criteo/criteo-uplift/resolve/2424920019e49d52d72c13ac1143ec5d53af276b/criteo-research-uplift-v2.1.csv.gz",
+  "repository_revision": "2424920019e49d52d72c13ac1143ec5d53af276b",
+  "source_filename": "criteo-research-uplift-v2.1.csv.gz",
+  "sha256": "2716e1bf0fd157a93b5bf86924d9088419dfbac2022c6cd90030220634f616dc",
+  "bytes": 311422618,
+  "rows": 13979592,
+  "license": "CC-BY-NC-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-nc-sa/4.0/",
+  "paper": "https://ama.liglab.fr/~amini/Publis/large-scale-benchmark.pdf",
+  "sampler": "splitmix64-bottom-k-v1",
+  "sample_size": 300000,
+  "sample_seed": 42,
+  "raw_or_sample_rows_committed": false
+}

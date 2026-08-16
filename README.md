@@ -2,15 +2,37 @@
 
 [![CI](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml/badge.svg)](https://github.com/parisaMSTFV/retention-treatment-uplift/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB)](https://www.python.org/)
-[![Data](https://img.shields.io/badge/data-100%25%20synthetic-0F766E)](DATA_PROVENANCE.md)
+[![Evidence](https://img.shields.io/badge/evidence-synthetic%20%2B%20public%20randomized%20benchmark-0F766E)](DATA_PROVENANCE.md)
 
 A churn score estimates who may leave. This project asks the next decision question: **which
 customers should receive a retention action, which action should they receive, and will the
 incremental value justify its cost?** It learns heterogeneous effects from a randomized
 experiment and turns them into a budget- and capacity-constrained policy.
 
-> Every customer, feature, experiment wave, treatment, cost, constraint, and result is synthetic.
-> No employer data, schema, code, business rule, or internal threshold is used.
+> The multi-action retention decision run is synthetic. A separate external validation uses the
+> public, anonymized CRITEO-UPLIFTv2.1 randomized advertising benchmark. No employer data, schema,
+> code, business rule, or internal threshold is used; no Criteo row-level data is committed.
+
+## External evidence card
+
+| Evidence layer | Executed result |
+|---|---|
+| **Source identity** | Full 13,979,592-row CRITEO-UPLIFTv2.1 file verified at 311,422,618 bytes and SHA-256 `2716e1bf…f616dc`. |
+| **Design** | Advertising incrementality tests with randomized assignment/holdout; estimand is assignment ITT on two-week visits in the released benchmark. |
+| **Frozen test** | T-learner logistic selected and thresholded on validation, then evaluated once on 59,779 independent test rows. |
+| **Uncertainty** | Top-score policy reached 30.3%; AIPW visit effect among targeted rows was **1.403%** (95% CI **0.279% to 2.528%**). |
+| **Matched reach** | Increment over random targeting at the same reach was **0.297% per eligible row** (95% CI **0.054% to 0.540%**). |
+| **Randomization audit** | Treatment-prediction AUC **0.5005**; maximum absolute feature SMD **0.0419**. |
+
+This is real external evidence for the repository's **binary uplift mechanics**, not validation of
+retention economics, multi-action choice, treatment costs, or transportability. The released file
+is non-uniformly subsampled, has no time/experiment identifier, and is licensed
+[CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) for noncommercial use.
+See the [external run summary](reports/external_validation/run_summary.md),
+[source provenance](reports/external_validation/source_provenance.json), and
+[validation contract](docs/criteo_external_validation.md).
+
+![External visit uplift by decile](reports/external_validation/visit_uplift_deciles.png)
 
 ## Decision card
 
@@ -35,6 +57,25 @@ make check
 
 The run regenerates the synthetic experiment, policy outputs, diagnostics, and figures. Row-level
 data and hidden potential outcomes remain excluded from Git.
+
+### Reproduce the external validation
+
+Review Criteo's noncommercial ShareAlike license, then explicitly accept it for the download:
+
+```bash
+python scripts/download_criteo_uplift.py \
+  --accept-license CC-BY-NC-SA-4.0
+
+retention-uplift \
+  --external-criteo data/external/criteo-research-uplift-v2.1.csv.gz \
+  --external-sample-size 300000 \
+  --external-target-share 0.30 \
+  --seed 42 \
+  --project-root .
+```
+
+The command verifies the exact official checksum and row count, validates the complete source,
+and writes aggregate evidence only. The raw file and deterministic modeling sample stay ignored.
 
 ## Business question
 
@@ -167,11 +208,11 @@ flowchart TD
 ## Repository structure
 
 ```text
-src/retention_uplift/   simulation, features, causal models, policy, evaluation, reporting
-tests/                  randomization, leakage, model, constraint, and pipeline tests
-docs/                   analysis plan, metrics, model card, and interview guide
-reports/                reproducible metrics, decisions, samples, and figures
-scripts/                public-file sensitive-content check
+src/retention_uplift/   simulation plus isolated Criteo adapter and external validation
+tests/                  randomization, leakage, contract, checksum, policy, and pipeline tests
+docs/                   external-data contract, analysis plan, metrics, model card, interview guide
+reports/                synthetic decision run plus aggregate external-validation evidence
+scripts/                verified external downloader and public-file sensitive-content check
 .github/workflows/      CI on Python 3.11 and 3.12
 ```
 
@@ -203,6 +244,9 @@ Then run the Quick Start commands above. On Windows without `make`, use `python 
 - [Model card](docs/model_card.md)
 - [Interview guide](docs/interview_guide.md)
 - [Data provenance](DATA_PROVENANCE.md)
+- [Criteo external-validation contract](docs/criteo_external_validation.md)
+- [External run summary](reports/external_validation/run_summary.md)
+- [External source provenance](reports/external_validation/source_provenance.json)
 - [Reproducible run summary](reports/run_summary.md)
 - [Decision note](reports/decision_note.md)
 - [Policy comparison](reports/policy_comparison.csv)
@@ -213,6 +257,10 @@ Then run the Quick Start commands above. On Windows without `make`, use `python 
 ## Limitations
 
 - Synthetic effects validate the workflow but do not predict real customer response.
+- The external benchmark covers one binary advertising assignment and two-week outcomes; it does
+  not validate retention actions, economics, capacity constraints, or temporal transportability.
+- Criteo experiment strata and their assignment probabilities are not in the public schema; the
+  external AIPW report therefore uses and discloses the pooled training assignment share.
 - Randomization probabilities are known and stable; production experiments may have
   non-compliance, missing exposures, and delayed outcomes.
 - The policy optimizes a 60-day net-value outcome and does not capture longer-term habituation,

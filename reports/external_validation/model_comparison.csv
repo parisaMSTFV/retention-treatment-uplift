@@ -1,0 +1,3 @@
+model,validation_targeted_share,validation_policy_effect_per_eligible,validation_incremental_over_random_same_reach,validation_incremental_ci_low,validation_incremental_ci_high,validation_ipw_qini_per_eligible,score_threshold,selected
+T-learner logistic,0.300005020164,0.00455428040345,0.00328949856686,0.000855195481327,0.00572380165239,0.0043979875161,0.00299292856984,True
+T-learner hist,0.300908649743,0.00481518868958,0.00322493799566,0.000908137264385,0.00554173872694,0.00416639263221,0.00170668172926,False
