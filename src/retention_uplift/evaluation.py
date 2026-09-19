@@ -114,6 +114,9 @@ def policy_effect(
         * (observed - mu_control)
     )
     dr_effect = mu_policy + correction_policy - mu_control - correction_control
+    # The two algebraically identical control terms can leave machine-epsilon residue.  Make the
+    # no-treatment contrast exactly zero so serialized evidence is stable across BLAS builds.
+    dr_effect = np.where(policy_index == action_to_index["control"], 0.0, dr_effect)
 
     truth_matrix = frame.loc[:, [f"truth_expected_net_{action}" for action in ACTIONS]].to_numpy(
         float

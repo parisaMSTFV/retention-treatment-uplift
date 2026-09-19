@@ -1,4 +1,4 @@
 model,action,effect_rmse,effect_bias,rank_correlation
-T-learner linear,reminder,1.24166166516,-0.561393096631,0.857879452847
-T-learner linear,voucher,1.92134705418,-0.870430897352,0.84785092441
-T-learner linear,service_call,1.74009144079,-0.556864052391,0.792992713348
+T-learner linear,reminder,1.241661665,-0.5613930966,0.8578794528
+T-learner linear,voucher,1.921347054,-0.8704308974,0.8478509244
+T-learner linear,service_call,1.740091441,-0.5568640524,0.7929927133

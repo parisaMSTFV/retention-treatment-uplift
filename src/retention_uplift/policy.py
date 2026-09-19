@@ -10,6 +10,21 @@ from scipy.sparse import coo_matrix, vstack
 from retention_uplift.config import ACTIVE_ACTIONS, ProjectConfig
 
 
+def _validate_optimization_inputs(
+    gains: pd.DataFrame,
+    budget: float,
+    capacity_multiplier: float,
+) -> None:
+    if len(gains) == 0:
+        raise ValueError("gains must contain at least one customer")
+    if not np.isfinite(gains.loc[:, ACTIVE_ACTIONS].to_numpy(float)).all():
+        raise ValueError("treatment gains must be finite")
+    if not np.isfinite(budget) or budget < 0:
+        raise ValueError("budget must be finite and non-negative")
+    if not np.isfinite(capacity_multiplier) or capacity_multiplier <= 0:
+        raise ValueError("capacity_multiplier must be finite and positive")
+
+
 def solve_policy(
     gains: pd.DataFrame,
     config: ProjectConfig,
@@ -17,14 +32,14 @@ def solve_policy(
     capacity_multiplier: float = 1.0,
 ) -> pd.Series:
     """Choose at most one positive-value action per customer under shared constraints."""
+    config.validate()
     missing = set(ACTIVE_ACTIONS) - set(gains.columns)
     if missing:
         raise ValueError(f"missing treatment gain columns: {sorted(missing)}")
     n = len(gains)
     m = len(ACTIVE_ACTIONS)
     budget = config.budget_per_customer * n if budget is None else budget
-    if capacity_multiplier <= 0:
-        raise ValueError("capacity_multiplier must be positive")
+    _validate_optimization_inputs(gains, budget, capacity_multiplier)
     values = gains.loc[:, ACTIVE_ACTIONS].to_numpy(float).reshape(-1)
     costs = np.tile([config.action_costs[action] for action in ACTIVE_ACTIONS], n)
 
@@ -91,14 +106,13 @@ def greedy_uplift_policy(
     This is an intentionally simple baseline. It uses the same budget and channel ceilings as
     the optimizer but does not trade off competing customer-action combinations globally.
     """
+    config.validate()
     missing = set(ACTIVE_ACTIONS) - set(gains.columns)
     if missing:
         raise ValueError(f"missing treatment gain columns: {sorted(missing)}")
-    if capacity_multiplier <= 0:
-        raise ValueError("capacity_multiplier must be positive")
-
     n = len(gains)
     budget = config.budget_per_customer * n if budget is None else budget
+    _validate_optimization_inputs(gains, budget, capacity_multiplier)
     gain_values = gains.loc[:, ACTIVE_ACTIONS].to_numpy(float)
     best_positions = np.argmax(gain_values, axis=1)
     best_actions = np.asarray(ACTIVE_ACTIONS, dtype=object)[best_positions]
@@ -176,7 +190,11 @@ def risk_only_gains(train: pd.DataFrame, target: pd.DataFrame) -> pd.DataFrame:
 
 
 def policy_cost(policy: pd.Series, config: ProjectConfig) -> float:
-    return float(policy.map(config.action_costs).sum())
+    costs = policy.map(config.action_costs)
+    if costs.isna().any():
+        invalid = sorted(set(policy.loc[costs.isna()].astype(str)))
+        raise ValueError(f"policy contains unsupported actions: {invalid}")
+    return float(costs.sum())
 
 
 def validate_policy(
@@ -185,10 +203,13 @@ def validate_policy(
     budget: float | None = None,
     capacity_multiplier: float = 1.0,
 ) -> None:
+    config.validate()
     n = len(policy)
     budget = config.budget_per_customer * n if budget is None else budget
-    if capacity_multiplier <= 0:
-        raise ValueError("capacity_multiplier must be positive")
+    if not np.isfinite(budget) or budget < 0:
+        raise ValueError("budget must be finite and non-negative")
+    if not np.isfinite(capacity_multiplier) or capacity_multiplier <= 0:
+        raise ValueError("capacity_multiplier must be finite and positive")
     if policy_cost(policy, config) > budget + 1e-6:
         raise ValueError("policy exceeds the treatment budget")
     for action in ACTIVE_ACTIONS:
