@@ -26,6 +26,9 @@ Compared with risk-only targeting, the selected policy improved true incremental
 **13.9%**.
 
 These values validate the workflow on synthetic data. They are not production performance claims.
+The interval is an influence-function normal approximation conditional on the frozen test policy
+and nuisance models. It does not represent transportability, repeated model-selection uncertainty,
+or uncertainty in future costs and capacity. Multi-seed results are reported separately.
 
 ## Operating sensitivity
 

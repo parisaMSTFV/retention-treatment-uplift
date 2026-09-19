@@ -46,7 +46,7 @@ evaluated once on the independent deterministic test partition. The selected mod
 - AIPW policy effect per eligible test row: **0.4251%**
   (95% CI 0.0843% to
   0.7658%)
-- Incremental effect over random targeting at the same realized reach:
+- Incremental effect over expected random targeting at the same realized reach:
   **0.2968%**
   (95% CI 0.0536% to
   0.5400%)
@@ -56,6 +56,11 @@ evaluated once on the independent deterministic test partition. The selected mod
 The AIPW calculation uses the pooled training assignment share because experiment/advertiser
 strata and their propensities are not present in the public schema. That is an explicit limitation,
 not evidence that every source experiment used an identical probability.
+
+The treatment-prediction AUC is a sample-split assignment diagnostic, not a replacement propensity
+model. The matched-reach comparator integrates over a hypothetical random allocation; it is not a
+second realized randomized policy. Test intervals are conditional on the frozen model and
+threshold and do not quantify transportability to the source advertiser populations.
 
 ## Validation-only model selection
 

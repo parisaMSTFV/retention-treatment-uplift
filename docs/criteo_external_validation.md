@@ -62,23 +62,28 @@ on validation. The frozen model and threshold are evaluated once on test. Report
 
 - full-file treatment/control differences in visit and conversion rates with normal 95% intervals;
 - test AIPW policy effect and effect among targeted rows with influence-function intervals;
-- the difference versus random targeting at the same realized reach with a paired interval;
+- the difference versus the expected value of random targeting at the same realized reach, with a
+  paired interval from the frozen-policy influence scores;
 - test uplift deciles with randomized-arm contrasts and intervals;
 - treatment-prediction AUC and maximum absolute feature SMD as randomization diagnostics.
 
 The AIPW estimator uses the pooled training assignment share. Experiment/advertiser strata and
 their assignment probabilities are absent from the public schema, so equal propensity across all
 source tests is not claimed.
+The treatment-prediction AUC is a sample-split diagnostic for feature-dependent assignment, not a
+replacement propensity model. The matched-reach comparator integrates over a hypothetical random
+allocation; it is not a second realized randomized policy. Test intervals are conditional on the
+frozen model and threshold and do not quantify source-population transportability.
 
 ## Reproduce
 
 Review the license before explicitly accepting it:
 
 ```bash
-python scripts/download_criteo_uplift.py \
+uv run python scripts/download_criteo_uplift.py \
   --accept-license CC-BY-NC-SA-4.0
 
-retention-uplift \
+uv run retention-uplift \
   --external-criteo data/external/criteo-research-uplift-v2.1.csv.gz \
   --external-sample-size 300000 \
   --external-target-share 0.30 \

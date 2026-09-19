@@ -23,7 +23,7 @@ from retention_uplift.policy import (
     solve_policy,
     validate_policy,
 )
-from retention_uplift.reporting import write_reports
+from retention_uplift.reporting import CSV_FLOAT_FORMAT, write_reports
 from retention_uplift.simulation import simulate_experiment, temporal_split
 
 
@@ -150,7 +150,7 @@ def run_pipeline(root: Path, config: ProjectConfig | None = None) -> dict[str, o
     experiment.to_csv(
         root / "data" / "generated" / "synthetic_experiment.csv",
         index=False,
-        float_format="%.12g",
+        float_format=CSV_FLOAT_FORMAT,
     )
 
     evaluator = TLearner("hist", config.seed + 900).fit(train)
@@ -220,12 +220,12 @@ def run_pipeline(root: Path, config: ProjectConfig | None = None) -> dict[str, o
     sample.to_csv(
         root / "data" / "sample" / "synthetic_policy_sample.csv",
         index=False,
-        float_format="%.12g",
+        float_format=CSV_FLOAT_FORMAT,
     )
     sample.to_csv(
         root / "reports" / "policy_assignments_sample.csv",
         index=False,
-        float_format="%.12g",
+        float_format=CSV_FLOAT_FORMAT,
     )
 
     selected_result = policy_comparison.loc[

@@ -34,6 +34,8 @@ Known randomization probabilities provide design-based overlap evidence. The com
 a 5% minimum-propensity rule; all arms pass and no observations are trimmed. Policy robustness is
 checked across nine budget-by-capacity scenarios against risk-only and greedy uplift-ranked
 baselines under matched constraints. Doubly robust intervals are reported at each operating point.
+The full pipeline is also rerun for five pre-declared seeds, including model selection and policy
+optimization rather than only perturbing the final fitted estimator.
 
 ## Known limitations
 
@@ -42,6 +44,8 @@ baselines under matched constraints. Doubly robust intervals are reported at eac
 - Fixed treatment costs omit redemption variability and operational queues.
 - The outcome horizon is 60 days and may miss longer-term customer or brand effects.
 - Small treatment arms produce noisy calibration and off-policy estimates.
+- Reported normal intervals are conditional on frozen policies and nuisance models. They do not
+  cover transportability or uncertainty in future costs, capacities, and behavior.
 - The operating grid re-optimizes on fixed model predictions; it does not prove transportability
   when customer behavior, treatment cost, or channel response changes.
 - No fairness or protected-group analysis is included because the generator does not create

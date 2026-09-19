@@ -56,6 +56,9 @@ the committed run has no failures and trims no observations.
 
 Incremental 60-day net value of the selected policy versus assigning control to everyone,
 estimated with a doubly robust off-policy estimator and a normal-approximation 95% interval.
+The interval is conditional on the frozen policy and nuisance models evaluated on the untouched
+test period. It does not quantify transportability, future cost/capacity uncertainty, or repeated
+model-selection uncertainty.
 
 ## Secondary metrics
 
@@ -67,6 +70,7 @@ estimated with a doubly robust off-policy estimator and a normal-approximation 9
 - experiment arm counts and maximum absolute standardized mean difference.
 - known-propensity overlap diagnostics and any trimming decision;
 - DR and simulation-only policy value over the budget-by-capacity grid.
+- full-pipeline stability over the pre-declared seeds 1, 7, 42, 123, and 2026.
 
 ## Decision rule
 

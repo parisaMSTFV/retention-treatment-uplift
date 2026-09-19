@@ -21,7 +21,7 @@ experiment and turns them into a budget- and capacity-constrained policy.
 | **Design** | Advertising incrementality tests with randomized assignment/holdout; estimand is assignment ITT on two-week visits in the released benchmark. |
 | **Frozen test** | T-learner logistic selected and thresholded on validation, then evaluated once on 59,779 independent test rows. |
 | **Uncertainty** | Top-score policy reached 30.3%; AIPW visit effect among targeted rows was **1.403%** (95% CI **0.279% to 2.528%**). |
-| **Matched reach** | Increment over random targeting at the same reach was **0.297% per eligible row** (95% CI **0.054% to 0.540%**). |
+| **Matched reach** | Increment over expected random targeting at the same reach was **0.297% per eligible row** (95% CI **0.054% to 0.540%**). |
 | **Randomization audit** | Treatment-prediction AUC **0.5005**; maximum absolute feature SMD **0.0419**. |
 
 This is real external evidence for the repository's **binary uplift mechanics**, not validation of
@@ -50,9 +50,10 @@ candidate policy requires a prospective randomized test with the same cost and c
 ## Quick start
 
 ```bash
-python -m pip install -e ".[dev]"
-retention-uplift --project-root local-runs/latest
-make check
+python -m pip install uv==0.12.15
+uv sync --locked --all-extras
+uv run retention-uplift --project-root local-runs/latest
+uv run make check
 ```
 
 The run regenerates the synthetic experiment, policy outputs, diagnostics, and figures under
@@ -64,10 +65,10 @@ excluded from Git.
 Review Criteo's noncommercial ShareAlike license, then explicitly accept it for the download:
 
 ```bash
-python scripts/download_criteo_uplift.py \
+uv run python scripts/download_criteo_uplift.py \
   --accept-license CC-BY-NC-SA-4.0
 
-retention-uplift \
+uv run retention-uplift \
   --external-criteo data/external/criteo-research-uplift-v2.1.csv.gz \
   --external-sample-size 300000 \
   --external-target-share 0.30 \
@@ -116,6 +117,25 @@ four-wave test period that is not used for model selection.
 
 The true value and oracle are visible only because the data generator retains hidden expected
 potential outcomes. They are never used to select the model or build the deployable policy.
+
+### Seed stability
+
+The pre-declared seeds `1, 7, 42, 123, 2026` rerun the complete 18,000-customer workflow rather
+than only refitting the selected seed-42 estimator.
+
+| Seed | Selected estimator | DR value (95% interval) | True value | Risk-only truth |
+|---:|---|---:|---:|---:|
+| 1 | DR-learner hist | 55 (-1,779 to 1,890) | 2,327 | 1,663 |
+| 7 | T-learner linear | 3,527 (1,406 to 5,648) | 2,918 | 1,526 |
+| 42 | T-learner linear | 2,270 (392 to 4,148) | 2,870 | 1,629 |
+| 123 | T-learner linear | 2,319 (459 to 4,180) | 2,926 | 1,594 |
+| 2026 | T-learner linear | 2,489 (533 to 4,446) | 2,770 | 1,702 |
+
+The selected policy beats risk-only targeting in hidden simulation truth for all five seeds, but
+the model family changes once and the DR interval excludes zero in only four of five runs. This is
+stability evidence for the synthetic data-generating process, not a substitute for a prospective
+experiment. Reproduce it with `uv run make seed-stability`; the aggregate output is
+[`reports/seed_stability.csv`](reports/seed_stability.csv).
 
 ## Why a simpler model won
 
@@ -196,6 +216,8 @@ flowchart TD
 - Design-based overlap diagnostics report arm propensities, IPW exposure, support rules, and
   trimming decisions.
 - Policy value is estimated with a doubly robust off-policy estimator.
+- Its normal interval is conditional on the frozen policy and nuisance models; it does not include
+  transportability, future operating-cost uncertainty, or repeated model-selection uncertainty.
 - Treatment ranking uses IPW cumulative gain, AUUC, and Qini.
 - Uplift calibration compares predicted and observed IPW gain by decile.
 - Synthetic-only diagnostics report effect RMSE, rank correlation, and regret versus the oracle.
@@ -214,7 +236,8 @@ tests/                  randomization, leakage, contract, checksum, policy, and 
 docs/                   external-data contract, analysis plan, metrics, model card, interview guide
 reports/                synthetic decision run plus aggregate external-validation evidence
 scripts/                verified external downloader and public-file sensitive-content check
-.github/workflows/      CI on Python 3.12
+uv.lock                 cross-platform dependency lock with artifact hashes
+.github/workflows/      locked Python 3.12 CI with wheel install and 85% branch-coverage gate
 ```
 
 The row-level synthetic experiment and hidden potential outcomes are regenerated locally and
@@ -222,21 +245,19 @@ excluded from Git. Only a 30-row synthetic policy sample and aggregate outputs a
 
 ## Environment setup
 
-The Quick Start requires Python 3.12. To isolate the dependencies first:
+The Quick Start requires Python 3.12. `uv sync` creates and manages the local `.venv`; manual
+activation is optional. On Windows without `make`, run the lint, coverage, and public-file checks
+through `uv run` directly.
+
+CI does not test an editable install. It syncs `uv.lock` without installing the project, builds a
+wheel without build isolation, installs that wheel with no dependency resolution, and runs the
+CLI from a temporary directory outside the repository. To exercise the same packaging path:
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+uv sync --locked --all-extras --no-install-project
+uv run --no-sync python -m build --wheel --no-isolation
+uv pip install --python .venv/bin/python --no-deps --force-reinstall dist/*.whl
 ```
-
-On Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-Then run the Quick Start commands above. On Windows without `make`, use `python -m ruff check .`,
-`python -m unittest discover -s tests -v`, and `python scripts/check_sensitive.py`.
 
 ## Documentation
 
@@ -253,6 +274,7 @@ Then run the Quick Start commands above. On Windows without `make`, use `python 
 - [Policy comparison](reports/policy_comparison.csv)
 - [Overlap diagnostics](reports/overlap_diagnostics.csv)
 - [Policy sensitivity grid](reports/policy_sensitivity.csv)
+- [Seed stability](reports/seed_stability.csv)
 - [Synthetic policy sample](reports/policy_assignments_sample.csv)
 
 ## Limitations
@@ -262,6 +284,8 @@ Then run the Quick Start commands above. On Windows without `make`, use `python 
   not validate retention actions, economics, capacity constraints, or temporal transportability.
 - Criteo experiment strata and their assignment probabilities are not in the public schema; the
   external AIPW report therefore uses and discloses the pooled training assignment share.
+- The external matched-reach comparator is the expected value of random targeting at the frozen
+  reach, not a second realized randomized allocation.
 - Randomization probabilities are known and stable; production experiments may have
   non-compliance, missing exposures, and delayed outcomes.
 - The policy optimizes a 60-day net-value outcome and does not capture longer-term habituation,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 
 import numpy as np
 import pandas as pd
@@ -56,6 +57,32 @@ class PolicyTests(unittest.TestCase):
         gains = pd.DataFrame(1.0, index=range(20), columns=ACTIVE_ACTIONS)
         with self.assertRaises(ValueError):
             solve_policy(gains, config, capacity_multiplier=0)
+
+    def test_non_finite_gains_and_negative_budget_are_rejected(self) -> None:
+        config = ProjectConfig()
+        gains = pd.DataFrame(1.0, index=range(20), columns=ACTIVE_ACTIONS)
+        gains.loc[0, "voucher"] = np.nan
+        with self.assertRaises(ValueError):
+            solve_policy(gains, config)
+        with self.assertRaises(ValueError):
+            solve_policy(gains.fillna(1.0), config, budget=-1.0)
+
+    def test_unknown_policy_action_and_invalid_config_are_rejected(self) -> None:
+        config = ProjectConfig()
+        gains = pd.DataFrame(1.0, index=range(20), columns=ACTIVE_ACTIONS)
+        with self.assertRaises(ValueError):
+            validate_policy(pd.Series(["control", "unknown"]), config)
+        with self.assertRaises(ValueError):
+            solve_policy(gains, replace(config, budget_per_customer=-0.1))
+        with self.assertRaises(ValueError):
+            replace(
+                config,
+                capacity_shares={
+                    "reminder": 0.2,
+                    "voucher": 1.1,
+                    "service_call": 0.1,
+                },
+            ).validate()
 
 
 if __name__ == "__main__":

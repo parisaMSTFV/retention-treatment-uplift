@@ -1,6 +1,6 @@
 PYTHON ?= python
 
-.PHONY: run external-download external-validate lint test safety check
+.PHONY: run external-download external-validate lint test coverage safety seed-stability check
 
 run:
 	$(PYTHON) -m retention_uplift --project-root local-runs/latest
@@ -18,7 +18,14 @@ lint:
 test:
 	$(PYTHON) -m unittest discover -s tests -v
 
+coverage:
+	MPLCONFIGDIR=/tmp/matplotlib $(PYTHON) -m coverage run -m unittest discover -s tests -v
+	$(PYTHON) -m coverage report --fail-under=85
+
 safety:
 	$(PYTHON) scripts/check_sensitive.py
 
-check: lint test safety
+seed-stability:
+	MPLCONFIGDIR=/tmp/matplotlib $(PYTHON) scripts/run_seed_stability.py
+
+check: lint coverage safety

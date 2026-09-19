@@ -30,9 +30,10 @@ raw or sampled Criteo rows.
 ## External randomized benchmark
 
 Criteo AI Lab describes CRITEO-UPLIFTv2.1 as data assembled from advertising incrementality tests
-where a randomized part of the population was prevented from targeting. The released unbiased
-version contains 13,979,592 rows with 12 anonymized features, assignment, visit, conversion, and
-exposure indicators.
+where a randomized part of the population was prevented from targeting. The publisher's erratum
+version removes the documented advertiser-identification leak in the first release; that narrower
+correction does not imply general absence of bias. It contains 13,979,592 rows with 12 anonymized
+features, assignment, visit, conversion, and exposure indicators.
 
 - Official page: <https://ailab.criteo.com/criteo-uplift-prediction-dataset/>
 - Official verified organization mirror:

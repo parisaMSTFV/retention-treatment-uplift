@@ -15,6 +15,20 @@ COLORS = {
     "service_call": "#0F766E",
     "control": "#94A3B8",
 }
+CSV_FLOAT_FORMAT = "%.10g"
+
+
+def _stable_json_value(value: object) -> object:
+    """Normalize numeric evidence to stable, decision-irrelevant precision."""
+    if isinstance(value, dict):
+        return {str(key): _stable_json_value(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_stable_json_value(item) for item in value]
+    if isinstance(value, (float, np.floating)):
+        return float(f"{float(value):.10g}")
+    if isinstance(value, np.integer):
+        return int(value)
+    return value
 
 
 def _markdown_table(frame: pd.DataFrame) -> str:
@@ -237,6 +251,9 @@ Compared with risk-only targeting, the selected policy improved true incremental
 **{oracle_regret:.1f}%**.
 
 These values validate the workflow on synthetic data. They are not production performance claims.
+The interval is an influence-function normal approximation conditional on the frozen test policy
+and nuisance models. It does not represent transportability, repeated model-selection uncertainty,
+or uncertainty in future costs and capacity. Multi-seed results are reported separately.
 
 ## Operating sensitivity
 
@@ -282,10 +299,11 @@ than relying on response-rate lift alone.
     (reports_dir / "decision_note.md").write_text(decision, encoding="utf-8")
     (reports_dir / "run_metrics.json").write_text(
         json.dumps(
-            metrics,
+            _stable_json_value(metrics),
             indent=2,
             default=lambda value: value.item() if hasattr(value, "item") else str(value),
-        ),
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -315,7 +333,7 @@ def write_reports(
         "policy_sensitivity.csv": sensitivity,
     }
     for filename, frame in csv_outputs.items():
-        frame.to_csv(reports_dir / filename, index=False, float_format="%.12g")
+        frame.to_csv(reports_dir / filename, index=False, float_format=CSV_FLOAT_FORMAT)
     plot_policy_value(policy_comparison, figures_dir / "policy_value_comparison.png")
     plot_calibration(calibration, figures_dir / "uplift_calibration.png")
     plot_qini(rank_curves, figures_dir / "qini_curves.png")
